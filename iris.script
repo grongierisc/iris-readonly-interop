@@ -2,10 +2,22 @@
  set sc = ##class(App.Installer).setup() 
 
  zn "IRISAPP"
- do $System.OBJ.LoadDir("/opt/irisapp/src","ck",,1)
+ do $System.OBJ.LoadDir("/opt/irisapp/demo","ck",,1)
+ zpm "load /opt/irisapp/"
  zpm "install sslclient"
+ zw ##class(%EnsembleMgr).SetAutoStart($namespace, "dc.Demo.Production")
 
  zn "%SYS"
+
+ set tViewer = ##class(Security.Users).%New()     
+ set tViewer.Name = "Viewer"  
+ set tViewer.NameSpace = "IRISAPP"    
+ set tViewer.PasswordExternal = "SYS"     
+ zw tViewer.%Save()
+
+ zw ##class(Security.Users).AddRoles("Viewer","#Ready_Only_Interop,%DB_IRISAPP")
+
  Do ##class(Security.Users).UnExpireUserPasswords("*")
+ 
 
 halt
