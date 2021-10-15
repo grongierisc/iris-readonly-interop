@@ -30,15 +30,90 @@ ClassMethod Install(path) As %Status
 	  set ns = $Namespace // ought to be package home namespace!
     try {
         set $Namespace = "%SYS"
-        set sc = ##class(Security.Roles).Import(tFileName)
     } catch (e) {
         set mes = "<PROTECT> The user " _ $Username _ " has no privileges"
             _ " to enter the %SYS namespace. Please, log in as a privileged user"
             _ " to set up the WebTerminal application."
-        set sc = $$$ERROR($$$GeneralError, mes)
+        Return $$$ERROR($$$GeneralError, mes)
     }
 
+    set sc = ##class(Security.Roles).Import(tFileName)
+
+    $$$ThrowOnError(..MakeSearchSQLPrivileges("#Ready_Only_Interop"))
+
     Return sc
+}
+
+ClassMethod MakeSearchSQLPrivileges(pRole) As %Status
+{
+    Set tSC = $$$OK
+
+		// SELECT privileges are assigned to roles which may view message content.
+		Set tExtendedSearches = $lb("EnsLib_HL7.Message", "EnsLib_HL7.SearchTable", "EnsLib_EDI_ASTM.Document") _
+										$lb("EnsLib_EDI_ASTM.SearchTable", "EnsLib_EDI_EDIFACT.Document", "EnsLib_EDI_EDIFACT.SearchTable") _
+										$lb("EnsLib_EDI_X12.Document", "EnsLib_EDI_X12.SearchTable","EnsLib_EDI_XML.Document") _
+										$lb("EnsLib_XML.SearchTable", "EnsLib_EDI_XML.SearchTable", "Ens.MessageBody", "EnsLib_RecordMap.Batch") _
+										$lb("EnsLib_DICOM.Document", "EnsLib_ebXML.Message", "EnsLib_ebXML.MessageWithPayload") _
+										$lb("EnsLib_ebXML.MessageTracking", "EnsLib_Printing.PrintJob", "EnsLib_Printing.PrintRequest") _
+										$lb("EnsLib_SQL.Snapshot", "Ens.StreamContainer", "Ens.StringContainer") _
+										$lb("Ens_Util.IOLog", $lb("EnsLib_Agent.Interface",0,"u"))
+
+    Set tSearches = $lb("Ens_Util.Log", "Ens.MessageHeader", "Ens.SuperSessionIndex", "Ens_Config.Credentials", "Ens_Rule.RuleLog", "Ens_Rule.Log", "Ens_Rule.DebugLog") _ 
+												$lb("Ens_Util.Calendar", "Ens.BusinessProcess", "Ens.BusinessProcessBPL", "Ens_Enterprise_MsgBank.MessageHeader") _
+												$lb("Ens_Enterprise_MsgBank.Log", "Ens_Enterprise_MsgBank.Node", "Ens_Util.Schedule", "Ens_Enterprise.MonitorClient") _
+												$lb("EnsLib_ITK_DTS_Framework.TransferLog", "EnsLib_ITK_Framework.FaultCode", "EnsLib_ITK_Framework.FaultVocabulary") _
+												$lb("EnsLib_ITK_Framework.FaultVocabularyMap", "EnsLib_ITK_Setup.ConsumerServiceRegistry", "EnsLib_ITK_Setup.DistributionRules") _
+												$lb("EnsLib_ITK_Setup.SenderRegistry", "EnsLib_ITK_Setup.ServiceDefinition", "EnsLib_ITK_Setup.SubscriptionRules") _
+												$lb("EnsLib_ITK_Setup.SystemDefinition", "Ens_Alerting.ManagedAlert","EnsLib_Agent.Interface") _
+												$lb("Ens_ServiceRegistry_External.Service","Ens_ServiceRegistry_External.Attribute") _
+												$lb("ISC_DM.IRISInteroperabilityPorts")
+
+    Set tProductionSearche = $lb("Ens_Config.Production_Extent")
+
+    Set tRoles(pRole) = tExtendedSearches_tSearches_tProductionSearche
+
+    set tNamespace = ""
+    While $order(^%SYS("Ensemble","InstalledNamespace",tNamespace))'="" {
+      set tNamespace = $order(^%SYS("Ensemble","InstalledNamespace",tNamespace))  
+      For i=1:1:$ll(tRoles(pRole)) {
+        Set tTable = $lg(tRoles(pRole), i)
+        If $ListValid(tTable) {
+          Set tGrantable = +$lg(tTable, 2)
+          Set tPriv = $lg(tTable, 3, "s")
+          Set tTable = $lg(tTable, 1)
+        }
+        Else {
+          Set tGrantable = 0
+          Set tPriv = "s"
+        }
+        Set tSQLObject = "1,"_tTable
+        Set tStatus = ..addSQLPrivilege(tNamespace, tSQLObject, tPriv, pRole, tGrantable)
+        If $$$ISERR(tStatus) Quit
+      }
+      
+    }
+
+    Return tSC
+}
+
+ClassMethod addSQLPrivilege(pNamespace As %String, pSQLObject As %String, pPrivilege As %String, pGrantee As %String, pGrantable As %Boolean = 0, pGrantor As %String = "_Ensemble") As %Status
+{
+	Set tStatus = $$$OK
+	For i=1:1:$l(pPrivilege) {
+		Set tPrivilege = $e(pPrivilege,i)
+		If '##class(Security.SQLPrivileges).IDKeyExists(pNamespace, pSQLObject, tPrivilege, pGrantee, pGrantor) {
+			Set tSQLPriv = ##class(Security.SQLPrivileges).%New()
+			Set tSQLPriv.Namespace = pNamespace
+			Set tSQLPriv.SQLObject = pSQLObject
+			Set tSQLPriv.Grantable = pGrantable
+			Set tSQLPriv.Grantee = pGrantee
+			Set tSQLPriv.Privilege = tPrivilege
+			Set tSQLPriv.Grantor = pGrantor
+			Set tStatus = tSQLPriv.%Save()
+			If $$$ISERR(tStatus) Quit
+		}
+	}
+	Quit tStatus
 }
 
 /// Description
