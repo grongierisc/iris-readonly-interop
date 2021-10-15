@@ -8,7 +8,7 @@ XData ProductionDefinition
   <ActorPoolSize>2</ActorPoolSize>
   <Item Name="dc.Demo.RedditService" Category="" ClassName="dc.Demo.RedditService" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
     <Setting Target="Adapter" Name="Feed">/new/</Setting>
-    <Setting Target="Adapter" Name="SSLConfig">default</Setting>
+    <Setting Target="Adapter" Name="SSLConfig">ISC.FeatureTracker.SSL.Config</Setting>
     <Setting Target="Adapter" Name="CallInterval">15</Setting>
     <Setting Target="Adapter" Name="Limit">50</Setting>
   </Item>
