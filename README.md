@@ -50,9 +50,11 @@ $ docker-compose up -d
 Open the [production](http://localhost:52795/csp/irisapp/EnsPortal.ProductionConfig.zen?$NAMESPACE=IRISAPP&IRISUserName=Viewer&IRISPassword=SYS).
 With this link you will able to visualize but not modifiy any thing.
 
-See traces : 
+See traces : [trace](http://localhost:52795/csp/irisapp/EnsPortal.MessageViewer.zen?SOURCEORTARGET=dc.Demo.RedditService&IRISUserName=Viewer&IRISPassword=SYS)
 
-[trace](http://localhost:52795/csp/irisapp/EnsPortal.MessageViewer.zen?SOURCEORTARGET=dc.Demo.RedditService&IRISUserName=Viewer&IRISPassword=SYS)
+Example :
+
+[demo](https://user-images.githubusercontent.com/47849411/137723222-e44737ba-7492-45d3-ae14-5c6fc07cd454.mp4)
 
 ## Challange
 
