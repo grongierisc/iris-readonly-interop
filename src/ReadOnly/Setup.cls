@@ -3,7 +3,7 @@ Class ReadOnly.Setup Extends %Projection.AbstractProjection
 {
 
 /// Projection to make install on compile
-Projection ProjectionName As Setup;
+Projection ProjectionName As ReadOnly.Setup;
 
 /// Call of the projection
 ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
@@ -199,10 +199,6 @@ XData ReadOnlyInterop
       </Resource>
       <Resource>
         <Name>%Ens_ITK</Name>
-        <Permission>1</Permission>
-      </Resource>
-      <Resource>
-        <Name>%Ens_JBH</Name>
         <Permission>1</Permission>
       </Resource>
       <Resource>
@@ -465,10 +461,6 @@ XData ReadOnlyInterop
       </Resource>
       <Resource>
         <Name>%Ens_ITK</Name>
-        <Permission>1</Permission>
-      </Resource>
-      <Resource>
-        <Name>%Ens_JBH</Name>
         <Permission>1</Permission>
       </Resource>
       <Resource>
