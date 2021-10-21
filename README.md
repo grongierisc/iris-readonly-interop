@@ -1,4 +1,18 @@
+# Interoperability Read Only access 
+
+In companies, most of the time, we have test, stage and production environments.
+
+It is very common that we, the developers, do not have the right to modify or touch the production directly because all the modifications must be traced in a versioning tool and tested before a production release.
+
+However, a read access to the production (especially to the traces) can allow us to better understand a possible bug.
+
+That's why I propose this ZPM module that creates a new role in IRIS that allows access to the productions and this only in read-only with access to the visual traces.
+
+![Oct-21-2021 16-52-18](https://user-images.githubusercontent.com/47849411/138303293-413fdf5d-4138-4ce2-a5d8-c9227a89d267.gif)
+
+<!--break-->
 ## iris-readonly-interop
+
 This is a simple install of a new role : #Ready_Only_Interop.
 
 The objective of this role is to visualize:
@@ -48,13 +62,15 @@ $ docker-compose up -d
 ### How to Run the Sample
 
 Open the [production](http://localhost:52795/csp/irisapp/EnsPortal.ProductionConfig.zen?$NAMESPACE=IRISAPP&IRISUserName=Viewer&IRISPassword=SYS).
-With this link you will able to visualize but not modifiy any thing.
+With this link you will able to visualize but not modify any thing.
+![prodimg](https://raw.githubusercontent.com/grongierisc/iris-readonly-interop/master/misc/ProductionReadOnly.png)
 
 See traces : [trace](http://localhost:52795/csp/irisapp/EnsPortal.MessageViewer.zen?SOURCEORTARGET=dc.Demo.RedditService&IRISUserName=Viewer&IRISPassword=SYS)
+![traceimg](https://raw.githubusercontent.com/grongierisc/iris-readonly-interop/master/misc/AcccessToTrace.png)
 
 Example :
 
-[demo](https://user-images.githubusercontent.com/47849411/137723222-e44737ba-7492-45d3-ae14-5c6fc07cd454.mp4)
+![Oct-21-2021 16-52-18](https://user-images.githubusercontent.com/47849411/138303293-413fdf5d-4138-4ce2-a5d8-c9227a89d267.gif)
 
 ## Challange
 
