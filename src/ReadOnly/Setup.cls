@@ -3,48 +3,57 @@ Class ReadOnly.Setup Extends %Projection.AbstractProjection
 {
 
 /// Projection to make install on compile
-Projection ProjectionName As ReadOnly.Setup;
+Projection Reference As Setup;
 
 /// Call of the projection
 ClassMethod CreateProjection(cls As %String, ByRef params) As %Status
 {
-    Return ..Install()
-}
+    set tSC = $$$OK
+    set tCurrentNamespace = $Namespace
 
-/// Installer
-ClassMethod Install(path) As %Status
-{
-    // Create a tmp file with XData content in it
+    write !, "Create a tmp file with XData content in it..."
     set tFileName=##class(%File).TempFilename("xml")
     set tFile = ##class(%Stream.FileBinary).%New()
     set tFile.Filename = tFileName 
-    // Read the xdata
+    write !, "Read the xdata..."
     Set xdataID="ReadOnly.Setup||ReadOnlyInterop"
     Set compiledXdata=##class(%Dictionary.CompiledXData).%OpenId(xdataID)
     Set tStream=compiledXdata.Data
-    // Copy Xdata to file
+    write !, "Copy Xdata to file..."
     do tFile.CopyFromAndSave(tStream)
 
-    // Install Roles
-    new $Namespace
-	  set ns = $Namespace // ought to be package home namespace!
-    try {
-        set $Namespace = "%SYS"
-    } catch (e) {
-        set mes = "<PROTECT> The user " _ $Username _ " has no privileges"
-            _ " to enter the %SYS namespace. Please, log in as a privileged user"
-            _ " to set up the WebTerminal application."
-        Return $$$ERROR($$$GeneralError, mes)
+    set tObj = ##class(ReadOnly.Setup).%New()
+    write !, "Changing namespace to %SYS..."
+    znspace "%SYS" // we need to change the namespace to %SYS, as Security.Roles class exists only there
+    Try {
+      $$$ThrowOnError(tObj.Install(tFileName))
     }
+    Catch ex {
+      Set tSC=ex.AsStatus()
+    } 
+    write !, "Changing namespace back to "_tCurrentNamespace_"..."
+    znspace tCurrentNamespace
+    Return tSC
+}
 
-    set sc = ##class(Security.Roles).Import(tFileName)
+ClassMethod RemoveProjection(cls As %String, ByRef params, recompile As %Boolean) As %Status
+{
+    Quit $$$OK
+}
 
+/// Installer
+Method Install(pFileName) As %Status
+{
+    write !, "Install role #Ready_Only_Interop..."
+    $$$ThrowOnError(##class(Security.Roles).Import(pFileName))
+
+    write !, "Create SQL privileges for #Ready_Only_Interop..."
     $$$ThrowOnError(..MakeSearchSQLPrivileges("#Ready_Only_Interop"))
 
     Return sc
 }
 
-ClassMethod MakeSearchSQLPrivileges(pRole) As %Status
+Method MakeSearchSQLPrivileges(pRole) As %Status
 {
     Set tSC = $$$OK
 
@@ -96,7 +105,7 @@ ClassMethod MakeSearchSQLPrivileges(pRole) As %Status
     Return tSC
 }
 
-ClassMethod addSQLPrivilege(pNamespace As %String, pSQLObject As %String, pPrivilege As %String, pGrantee As %String, pGrantable As %Boolean = 0, pGrantor As %String = "_Ensemble") As %Status
+Method addSQLPrivilege(pNamespace As %String, pSQLObject As %String, pPrivilege As %String, pGrantee As %String, pGrantable As %Boolean = 0, pGrantor As %String = "_Ensemble") As %Status
 {
 	Set tStatus = $$$OK
 	For i=1:1:$l(pPrivilege) {
@@ -234,10 +243,6 @@ XData ReadOnlyInterop
         <Permission>1</Permission>
       </Resource>
       <Resource>
-        <Name>%Ens_MessageResubmit</Name>
-        <Permission>1</Permission>
-      </Resource>
-      <Resource>
         <Name>%Ens_MessageSuspend</Name>
         <Permission>1</Permission>
       </Resource>
@@ -340,10 +345,6 @@ XData ReadOnlyInterop
       <Resource>
         <Name>%Ens_Rules</Name>
         <Permission>5</Permission>
-      </Resource>
-      <Resource>
-        <Name>%Ens_SequenceManager</Name>
-        <Permission>1</Permission>
       </Resource>
       <Resource>
         <Name>%Ens_SettingsReportConfig</Name>
@@ -496,10 +497,6 @@ XData ReadOnlyInterop
         <Permission>1</Permission>
       </Resource>
       <Resource>
-        <Name>%Ens_MessageResubmit</Name>
-        <Permission>1</Permission>
-      </Resource>
-      <Resource>
         <Name>%Ens_MessageSuspend</Name>
         <Permission>1</Permission>
       </Resource>
@@ -602,10 +599,6 @@ XData ReadOnlyInterop
       <Resource>
         <Name>%Ens_Rules</Name>
         <Permission>5</Permission>
-      </Resource>
-      <Resource>
-        <Name>%Ens_SequenceManager</Name>
-        <Permission>1</Permission>
       </Resource>
       <Resource>
         <Name>%Ens_SettingsReportConfig</Name>
